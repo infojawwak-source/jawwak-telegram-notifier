@@ -104,51 +104,64 @@ function extractNotePreference(notes, label) {
   return match?.[1]?.trim() || 'ØºÙØ± ÙØªÙÙØ±';
 }
 
+function telegramStatus(value) {
+  const map = {
+    pending: '\u0642\u064a\u062f \u0627\u0644\u0645\u0631\u0627\u062c\u0639\u0629',
+    confirmed: '\u062a\u0645 \u0627\u0644\u062a\u0623\u0643\u064a\u062f',
+    completed: '\u0627\u0643\u062a\u0645\u0644 \u0627\u0644\u062d\u062c\u0632',
+    cancelled: '\u062a\u0645 \u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u062d\u062c\u0632'
+  };
+  return map[String(value || '').toLowerCase()] || clean(value);
+}
+
+function telegramPayment(value) {
+  const map = {
+    paid: '\u062a\u0645 \u0627\u0644\u062f\u0641\u0639',
+    unpaid: '\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u062f\u0641\u0639 \u0628\u0639\u062f',
+    pending: '\u0641\u064a \u0627\u0646\u062a\u0638\u0627\u0631 \u0627\u0644\u062f\u0641\u0639'
+  };
+  return map[String(value || '').toLowerCase()] || clean(value);
+}
+
+function telegramCabin(value) {
+  const map = {
+    economy: '\u0627\u0644\u062f\u0631\u062c\u0629 \u0627\u0644\u0633\u064a\u0627\u062d\u064a\u0629',
+    premium_economy: '\u0627\u0644\u0633\u064a\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0645\u062a\u0627\u0632\u0629',
+    business: '\u062f\u0631\u062c\u0629 \u0631\u062c\u0627\u0644 \u0627\u0644\u0623\u0639\u0645\u0627\u0644',
+    first: '\u0627\u0644\u062f\u0631\u062c\u0629 \u0627\u0644\u0623\u0648\u0644\u0649'
+  };
+  return map[String(value || '').toLowerCase()] || clean(value);
+}
+
 function buildTelegramBookingMessage(booking) {
   const returnLine = booking.return_date
-    ? `ð ØªØ§Ø±ÙØ® Ø§ÙØ¹ÙØ¯Ø©: ${formatDate(booking.return_date)}${booking.return_dep_time ? ` â ${clean(booking.return_dep_time)}` : ''}`
-    : null;
-  const statusMap = { pending: 'ÙÙØ¯ Ø§ÙÙØ±Ø§Ø¬Ø¹Ø©', confirmed: 'ØªÙ Ø§ÙØªØ£ÙÙØ¯', completed: 'ÙÙØªÙÙ', cancelled: 'ÙÙØºÙ' };
-  const paymentMap = { paid: 'ÙØ¯ÙÙØ¹', unpaid: 'ØºÙØ± ÙØ¯ÙÙØ¹', pending: 'ÙÙØ¯ Ø§ÙØ§ÙØªØ¸Ø§Ø±' };
-  const cabinMap = { economy: 'Ø§ÙØªØµØ§Ø¯Ù', premium_economy: 'Ø§ÙØªØµØ§Ø¯Ù ÙÙÙØ²', business: 'Ø±Ø¬Ø§Ù Ø£Ø¹ÙØ§Ù', first: 'Ø¯Ø±Ø¬Ø© Ø£ÙÙÙ' };
-
-  const seatPreference = extractNotePreference(booking.notes, 'ØªÙØ¶ÙÙ Ø§ÙÙÙØ¹Ø¯') || 'ÙØ§ ÙÙØ¬Ø¯ ØªÙØ¶ÙÙ';
-  const baggagePreference = clean(booking.baggage_option) !== 'ØºÙØ± ÙØªÙÙØ±'
-    ? clean(booking.baggage_option)
-    : (extractNotePreference(booking.notes, 'ØªÙØ¶ÙÙ Ø§ÙØ£ÙØªØ¹Ø©') || 'ØºÙØ± ÙØªÙÙØ±');
+    ? `ð \u0627\u0644\u0639\u0648\u062f\u0629: ${formatDate(booking.return_date)}`
+    : '';
 
   return [
-    'ð Ø­Ø¬Ø² Ø¬Ø¯ÙØ¯ Ø¹ÙÙ Ø¬ÙÙÙ',
-    'ââââââââââââââââââââ',
-    `ð« Ø±ÙÙ Ø§ÙØ­Ø¬Ø²: ${clean(booking.booking_ref)}`,
-    `ð ØªØ§Ø±ÙØ® Ø¥ÙØ´Ø§Ø¡ Ø§ÙØ·ÙØ¨: ${formatDate(booking.created_at)}`,
+    '\ud83d\udd14 \u062d\u062c\u0632 \u062c\u062f\u064a\u062f \u0639\u0644\u0649 \u062c\u0648\u0651\u0643',
     '',
-    'ð¤ Ø¨ÙØ§ÙØ§Øª Ø§ÙØ¹ÙÙÙ',
-    `Ø§ÙØ§Ø³Ù: ${clean(booking.passenger_first_name)}${booking.passenger_last_name ? ` ${clean(booking.passenger_last_name)}` : ''}`,
-    `ð± Ø§ÙÙØ§ØªÙ: ${clean(booking.passenger_phone)}`,
-    `ð§ Ø§ÙØ¨Ø±ÙØ¯ Ø§ÙØ¥ÙÙØªØ±ÙÙÙ: ${clean(booking.passenger_email)}`,
-    `ð Ø±ÙÙ Ø¬ÙØ§Ø² Ø§ÙØ³ÙØ±: ${clean(booking.passport_number)}`,
+    `\ud83c\udfab \u0631\u0642\u0645 \u0627\u0644\u062d\u062c\u0632: ${clean(booking.booking_ref)}`,
     '',
-    'ðº ØªÙØ¶ÙÙØ§Øª Ø§ÙØ¹ÙÙÙ',
-    `Ø§ÙÙÙØ¹Ø¯: ${seatPreference}`,
-    `ð§³ Ø§ÙØ£ÙØªØ¹Ø©: ${baggagePreference}`,
+    `\ud83d\udc64 \u0627\u0644\u0639\u0645\u064a\u0644: ${clean(booking.passenger_first_name)}${booking.passenger_last_name ? ` ${clean(booking.passenger_last_name)}` : ''}`,
+    `\ud83d\udcf1 \u0627\u0644\u0647\u0627\u062a\u0641: ${clean(booking.passenger_phone)}`,
+    `\ud83d\udce7 \u0627\u0644\u0628\u0631\u064a\u062f: ${clean(booking.passenger_email)}`,
+    `\ud83d\udee1\ufe0f \u0631\u0642\u0645 \u062c\u0648\u0627\u0632 \u0627\u0644\u0633\u0641\u0631: ${clean(booking.passport_number)}`,
+    `\ud83d\udeb6 \u062a\u0641\u0636\u064a\u0644 \u0627\u0644\u0645\u0642\u0639\u062f: ${extractNotePreference(booking.notes, '\u062a\u0641\u0636\u064a\u0644 \u0627\u0644\u0645\u0642\u0639\u062f')}`,
+    `\ud83e\uddf3 \u0627\u0644\u0623\u0645\u062a\u0639\u0629: ${clean(booking.baggage_option)}`,
     '',
-    'âï¸ ØªÙØ§ØµÙÙ Ø§ÙØ±Ø­ÙØ©',
-    `Ø´Ø±ÙØ© Ø§ÙØ·ÙØ±Ø§Ù: ${clean(booking.airline_name)}`,
-    `âï¸ Ø±ÙÙ Ø§ÙØ±Ø­ÙØ©: ${clean(booking.flight_number)}`,
-    `ðºï¸ Ø§ÙÙØ³Ø§Ø±: ${clean(booking.from_city)} (${clean(booking.from_code)}) â ${clean(booking.to_city)} (${clean(booking.to_code)})`,
-    `ð ØªØ§Ø±ÙØ® Ø§ÙØ°ÙØ§Ø¨: ${formatDate(booking.depart_date)}${booking.dep_time ? ` â ${clean(booking.dep_time)}` : ''}`,
+    `\u2708\ufe0f \u0634\u0631\u0643\u0629 \u0627\u0644\u0637\u064a\u0631\u0627\u0646: ${clean(booking.airline_name)}`,
+    `\ud83d\udeeb \u0631\u0642\u0645 \u0627\u0644\u0631\u062d\u0644\u0629: ${clean(booking.flight_number)}`,
+    `\ud83d\uddfa\ufe0f \u0627\u0644\u0645\u0633\u0627\u0631: ${clean(booking.from_city)} (${clean(booking.from_code)}) \u2192 ${clean(booking.to_city)} (${clean(booking.to_code)})`,
+    `\ud83d\udcc5 \u0627\u0644\u0630\u0647\u0627\u0628: ${formatDate(booking.depart_date)}${booking.dep_time ? ` \u2014 ${clean(booking.dep_time)}` : ''}`,
     returnLine,
-    `ðª Ø§ÙØ¯Ø±Ø¬Ø©: ${cabinMap[booking.cabin_class] || clean(booking.cabin_class)}`,
-    `ð¥ Ø§ÙÙØ³Ø§ÙØ±ÙÙ: ${clean(booking.adults)} Ø¨Ø§ÙØº${Number(booking.children || 0) ? ` + ${booking.children} Ø·ÙÙ` : ''}${Number(booking.infants || 0) ? ` + ${booking.infants} Ø±Ø¶ÙØ¹` : ''}`,
-    `â±ï¸ ÙØ¯Ø© Ø§ÙØ±Ø­ÙØ©: ${clean(booking.duration)}`,
+    `\ud83d\udcba \u0627\u0644\u062f\u0631\u062c\u0629: ${telegramCabin(booking.cabin_class)}`,
     '',
-    'ð° Ø§ÙØ¯ÙØ¹ ÙØ§ÙØ­Ø§ÙØ©',
-    `ðµ Ø§ÙØ³Ø¹Ø±: ${formatPrice(booking.total_price)}`,
-    `ð Ø­Ø§ÙØ© Ø§ÙØ­Ø¬Ø²: ${statusMap[booking.status] || clean(booking.status)}`,
-    `ð³ Ø­Ø§ÙØ© Ø§ÙØ¯ÙØ¹: ${paymentMap[booking.payment_status] || clean(booking.payment_status)}`,
+    `\ud83d\udcb0 \u0627\u0644\u0633\u0639\u0631: ${formatPrice(booking.total_price)}`,
+    `\ud83d\udccc \u062d\u0627\u0644\u0629 \u0627\u0644\u062d\u062c\u0632: ${telegramStatus(booking.status)}`,
+    `\ud83d\udcb3 \u062d\u0627\u0644\u0629 \u0627\u0644\u062f\u0641\u0639: ${telegramPayment(booking.payment_status)}`,
     '',
-    'â¡ ÙØ±Ø¬Ù ÙØ±Ø§Ø¬Ø¹Ø© Ø§ÙØ·ÙØ¨ ÙØ§ÙØªÙØ§ØµÙ ÙØ¹ Ø§ÙØ¹ÙÙÙ ÙØ¥ØªÙØ§Ù Ø§ÙØªØ£ÙÙØ¯ ÙØ§ÙØ¯ÙØ¹.'
+    '\u26a1 \u064a\u0631\u062c\u0649 \u0645\u0631\u0627\u062c\u0639\u0629 \u0627\u0644\u0637\u0644\u0628 \u0648\u0627\u0644\u062a\u0648\u0627\u0635\u0644 \u0645\u0639 \u0627\u0644\u0639\u0645\u064a\u0644 \u0644\u062a\u0623\u0643\u064a\u062f \u0627\u0644\u062d\u062c\u0632 \u0648\u0627\u0644\u062f\u0641\u0639.'
   ].filter(Boolean).join('\n');
 }
 
@@ -193,14 +206,14 @@ async function sendTelegramMessage(text) {
     {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json; charset=utf-8',
         Accept: 'application/json',
       },
-      body: JSON.stringify({
+      body: Buffer.from(JSON.stringify({
         chat_id: TELEGRAM_CHAT_ID,
         text,
         disable_web_page_preview: true,
-      }),
+      }), 'utf8'),
     }
   );
 
@@ -213,25 +226,15 @@ async function sendTelegramMessage(text) {
   return data;
 }
 
-async function getBookingForTracking(bookingRef) {
-  const booking = await getBooking(bookingRef);
-  return booking;
-}
-
-function trackingSeatPreference(notes) {
-  return extractNotePreference(notes, 'ØªÙØ¶ÙÙ Ø§ÙÙÙØ¹Ø¯') || 'ÙØ§ ÙÙØ¬Ø¯ ØªÙØ¶ÙÙ';
-}
-
 app.get('/api/booking-tracking', rateLimit, async (req, res) => {
   try {
     const bookingRef = String(req.query?.bookingRef || '').trim().toUpperCase();
 
     if (!/^JWK-[0-9]{6}-[A-Z0-9]{6}$/.test(bookingRef)) {
-      return res.status(400).json({ ok: false, error: 'Ø±ÙÙ Ø§ÙØ­Ø¬Ø² ØºÙØ± ØµØ§ÙØ­.' });
+      return res.status(400).json({ error: '\u0631\u0642\u0645 \u0627\u0644\u062d\062c\u0632 \u063a\u064a\u0631 \u0635\u0627\u0644\u062d.' });
     }
 
-    const booking = await getBookingForTracking(bookingRef);
-
+    const booking = await getBooking(bookingRef);
     return res.json({
       ok: true,
       booking: {
@@ -250,19 +253,15 @@ app.get('/api/booking-tracking', rateLimit, async (req, res) => {
         dep_time: booking.dep_time,
         arr_time: booking.arr_time,
         duration: booking.duration,
-        baggage_option: booking.baggage_option || extractNotePreference(booking.notes, 'ØªÙØ¶ÙÙ Ø§ÙØ£ÙØªØ¹Ø©'),
-        seat_preference: trackingSeatPreference(booking.notes),
-        created_at: booking.created_at
-      }
+        cabin_class: booking.cabin_class,
+        baggage_option: booking.baggage_option || extractNotePreference(booking.notes, '\u062a\u0641\u0636\u064a\u0644 \u0627\u0644\u0623\u0645\u062a\u0639\u0629'),
+        seat_preference: extractNotePreference(booking.notes, '\u062a\u0641\u0636\u064a\u0644 \u0627\u0644\u0645\u0642\u0639\u062f'),
+        created_at: booking.created_at,
+      },
     });
   } catch (err) {
-    const message = err?.message || '';
-    const notFound = message.includes('ÙÙ ÙØªÙ Ø§ÙØ¹Ø«ÙØ±');
     console.error('Booking tracking error:', err);
-    return res.status(notFound ? 404 : 500).json({
-      ok: false,
-      error: notFound ? 'ÙÙ ÙØªÙ Ø§ÙØ¹Ø«ÙØ± Ø¹ÙÙ Ø­Ø¬Ø² Ø¨ÙØ°Ø§ Ø§ÙØ±ÙÙ.' : 'ØªØ¹Ø°Ø± ÙØ±Ø§Ø¡Ø© Ø­Ø§ÙØ© Ø§ÙØ­Ø¬Ø² Ø­Ø§ÙÙØ§Ù. Ø­Ø§ÙÙ ÙØ±Ø© Ø£Ø®Ø±Ù.'
-    });
+    return res.status(404).json({ ok: false, error: '\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0639\u062b\u0648\u0631 \u0639\u0644\u0649 \u0627\u0644\u062d\u062c\u0632 \u0627\u0644\u0645\u0637\u0644\u0648\u0628.' });
   }
 });
 
