@@ -106,32 +106,49 @@ function extractNotePreference(notes, label) {
 
 function buildTelegramBookingMessage(booking) {
   const returnLine = booking.return_date
-    ? `ð Ø§ÙØ¹ÙØ¯Ø©: ${formatDate(booking.return_date)}`
-    : '';
+    ? `ð ØªØ§Ø±ÙØ® Ø§ÙØ¹ÙØ¯Ø©: ${formatDate(booking.return_date)}${booking.return_dep_time ? ` â ${clean(booking.return_dep_time)}` : ''}`
+    : null;
+  const statusMap = { pending: 'ÙÙØ¯ Ø§ÙÙØ±Ø§Ø¬Ø¹Ø©', confirmed: 'ØªÙ Ø§ÙØªØ£ÙÙØ¯', completed: 'ÙÙØªÙÙ', cancelled: 'ÙÙØºÙ' };
+  const paymentMap = { paid: 'ÙØ¯ÙÙØ¹', unpaid: 'ØºÙØ± ÙØ¯ÙÙØ¹', pending: 'ÙÙØ¯ Ø§ÙØ§ÙØªØ¸Ø§Ø±' };
+  const cabinMap = { economy: 'Ø§ÙØªØµØ§Ø¯Ù', premium_economy: 'Ø§ÙØªØµØ§Ø¯Ù ÙÙÙØ²', business: 'Ø±Ø¬Ø§Ù Ø£Ø¹ÙØ§Ù', first: 'Ø¯Ø±Ø¬Ø© Ø£ÙÙÙ' };
+
+  const seatPreference = extractNotePreference(booking.notes, 'ØªÙØ¶ÙÙ Ø§ÙÙÙØ¹Ø¯') || 'ÙØ§ ÙÙØ¬Ø¯ ØªÙØ¶ÙÙ';
+  const baggagePreference = clean(booking.baggage_option) !== 'ØºÙØ± ÙØªÙÙØ±'
+    ? clean(booking.baggage_option)
+    : (extractNotePreference(booking.notes, 'ØªÙØ¶ÙÙ Ø§ÙØ£ÙØªØ¹Ø©') || 'ØºÙØ± ÙØªÙÙØ±');
 
   return [
     'ð Ø­Ø¬Ø² Ø¬Ø¯ÙØ¯ Ø¹ÙÙ Ø¬ÙÙÙ',
+    'ââââââââââââââââââââ',
+    `ð« Ø±ÙÙ Ø§ÙØ­Ø¬Ø²: ${clean(booking.booking_ref)}`,
+    `ð ØªØ§Ø±ÙØ® Ø¥ÙØ´Ø§Ø¡ Ø§ÙØ·ÙØ¨: ${formatDate(booking.created_at)}`,
     '',
-    `ð« Ø±ÙÙ Ø§ÙØ·ÙØ¨: ${clean(booking.booking_ref)}`,
-    '',
-    `ð¤ Ø§ÙØ¹ÙÙÙ: ${clean(booking.passenger_first_name)}${booking.passenger_last_name ? ` ${clean(booking.passenger_last_name)}` : ''}`,
+    'ð¤ Ø¨ÙØ§ÙØ§Øª Ø§ÙØ¹ÙÙÙ',
+    `Ø§ÙØ§Ø³Ù: ${clean(booking.passenger_first_name)}${booking.passenger_last_name ? ` ${clean(booking.passenger_last_name)}` : ''}`,
     `ð± Ø§ÙÙØ§ØªÙ: ${clean(booking.passenger_phone)}`,
-    `ð§ Ø§ÙØ¨Ø±ÙØ¯: ${clean(booking.passenger_email)}`,
-    `ð Ø¬ÙØ§Ø² Ø§ÙØ³ÙØ±: ${clean(booking.passport_number)}`,
-    `ðº ØªÙØ¶ÙÙ Ø§ÙÙÙØ¹Ø¯: ${extractNotePreference(booking.notes, 'ØªÙØ¶ÙÙ Ø§ÙÙÙØ¹Ø¯')}`,
-    `ð§³ Ø§ÙØ£ÙØªØ¹Ø©: ${clean(booking.baggage_option)}`,
+    `ð§ Ø§ÙØ¨Ø±ÙØ¯ Ø§ÙØ¥ÙÙØªØ±ÙÙÙ: ${clean(booking.passenger_email)}`,
+    `ð Ø±ÙÙ Ø¬ÙØ§Ø² Ø§ÙØ³ÙØ±: ${clean(booking.passport_number)}`,
     '',
-    `âï¸ Ø´Ø±ÙØ© Ø§ÙØ·ÙØ±Ø§Ù: ${clean(booking.airline_name)}`,
-    `ð« Ø§ÙØ±Ø­ÙØ©: ${clean(booking.flight_number)}`,
+    'ðº ØªÙØ¶ÙÙØ§Øª Ø§ÙØ¹ÙÙÙ',
+    `Ø§ÙÙÙØ¹Ø¯: ${seatPreference}`,
+    `ð§³ Ø§ÙØ£ÙØªØ¹Ø©: ${baggagePreference}`,
+    '',
+    'âï¸ ØªÙØ§ØµÙÙ Ø§ÙØ±Ø­ÙØ©',
+    `Ø´Ø±ÙØ© Ø§ÙØ·ÙØ±Ø§Ù: ${clean(booking.airline_name)}`,
+    `âï¸ Ø±ÙÙ Ø§ÙØ±Ø­ÙØ©: ${clean(booking.flight_number)}`,
     `ðºï¸ Ø§ÙÙØ³Ø§Ø±: ${clean(booking.from_city)} (${clean(booking.from_code)}) â ${clean(booking.to_city)} (${clean(booking.to_code)})`,
-    `ð Ø§ÙØ°ÙØ§Ø¨: ${formatDate(booking.depart_date)}${booking.dep_time ? ` â ${clean(booking.dep_time)}` : ''}`,
+    `ð ØªØ§Ø±ÙØ® Ø§ÙØ°ÙØ§Ø¨: ${formatDate(booking.depart_date)}${booking.dep_time ? ` â ${clean(booking.dep_time)}` : ''}`,
     returnLine,
-    `ðº Ø§ÙØ¯Ø±Ø¬Ø©: ${clean(booking.cabin_class)}`,
+    `ðª Ø§ÙØ¯Ø±Ø¬Ø©: ${cabinMap[booking.cabin_class] || clean(booking.cabin_class)}`,
+    `ð¥ Ø§ÙÙØ³Ø§ÙØ±ÙÙ: ${clean(booking.adults)} Ø¨Ø§ÙØº${Number(booking.children || 0) ? ` + ${booking.children} Ø·ÙÙ` : ''}${Number(booking.infants || 0) ? ` + ${booking.infants} Ø±Ø¶ÙØ¹` : ''}`,
+    `â±ï¸ ÙØ¯Ø© Ø§ÙØ±Ø­ÙØ©: ${clean(booking.duration)}`,
     '',
-    `ð° Ø§ÙØ³Ø¹Ø±: ${formatPrice(booking.total_price)}`,
-    `ð Ø§ÙØ­Ø§ÙØ©: ${clean(booking.status)}`,
+    'ð° Ø§ÙØ¯ÙØ¹ ÙØ§ÙØ­Ø§ÙØ©',
+    `ðµ Ø§ÙØ³Ø¹Ø±: ${formatPrice(booking.total_price)}`,
+    `ð Ø­Ø§ÙØ© Ø§ÙØ­Ø¬Ø²: ${statusMap[booking.status] || clean(booking.status)}`,
+    `ð³ Ø­Ø§ÙØ© Ø§ÙØ¯ÙØ¹: ${paymentMap[booking.payment_status] || clean(booking.payment_status)}`,
     '',
-    'â¡ Ø±Ø§Ø¬Ø¹ Ø§ÙØ·ÙØ¨ ÙØªÙØ§ØµÙ ÙØ¹ Ø§ÙØ¹ÙÙÙ ÙØ¥ØªÙØ§Ù Ø§ÙØªØ£ÙÙØ¯ ÙØ§ÙØ¯ÙØ¹.'
+    'â¡ ÙØ±Ø¬Ù ÙØ±Ø§Ø¬Ø¹Ø© Ø§ÙØ·ÙØ¨ ÙØ§ÙØªÙØ§ØµÙ ÙØ¹ Ø§ÙØ¹ÙÙÙ ÙØ¥ØªÙØ§Ù Ø§ÙØªØ£ÙÙØ¯ ÙØ§ÙØ¯ÙØ¹.'
   ].filter(Boolean).join('\n');
 }
 
@@ -195,6 +212,59 @@ async function sendTelegramMessage(text) {
 
   return data;
 }
+
+async function getBookingForTracking(bookingRef) {
+  const booking = await getBooking(bookingRef);
+  return booking;
+}
+
+function trackingSeatPreference(notes) {
+  return extractNotePreference(notes, 'ØªÙØ¶ÙÙ Ø§ÙÙÙØ¹Ø¯') || 'ÙØ§ ÙÙØ¬Ø¯ ØªÙØ¶ÙÙ';
+}
+
+app.get('/api/booking-tracking', rateLimit, async (req, res) => {
+  try {
+    const bookingRef = String(req.query?.bookingRef || '').trim().toUpperCase();
+
+    if (!/^JWK-[0-9]{6}-[A-Z0-9]{6}$/.test(bookingRef)) {
+      return res.status(400).json({ ok: false, error: 'Ø±ÙÙ Ø§ÙØ­Ø¬Ø² ØºÙØ± ØµØ§ÙØ­.' });
+    }
+
+    const booking = await getBookingForTracking(bookingRef);
+
+    return res.json({
+      ok: true,
+      booking: {
+        booking_ref: booking.booking_ref,
+        status: booking.status || 'pending',
+        payment_status: booking.payment_status || 'unpaid',
+        from_city: booking.from_city,
+        from_code: booking.from_code,
+        to_city: booking.to_city,
+        to_code: booking.to_code,
+        trip_type: booking.trip_type,
+        depart_date: booking.depart_date,
+        return_date: booking.return_date,
+        airline_name: booking.airline_name,
+        flight_number: booking.flight_number,
+        dep_time: booking.dep_time,
+        arr_time: booking.arr_time,
+        duration: booking.duration,
+        baggage_option: booking.baggage_option || extractNotePreference(booking.notes, 'ØªÙØ¶ÙÙ Ø§ÙØ£ÙØªØ¹Ø©'),
+        seat_preference: trackingSeatPreference(booking.notes),
+        created_at: booking.created_at
+      }
+    });
+  } catch (err) {
+    const message = err?.message || '';
+    const notFound = message.includes('ÙÙ ÙØªÙ Ø§ÙØ¹Ø«ÙØ±');
+    console.error('Booking tracking error:', err);
+    return res.status(notFound ? 404 : 500).json({
+      ok: false,
+      error: notFound ? 'ÙÙ ÙØªÙ Ø§ÙØ¹Ø«ÙØ± Ø¹ÙÙ Ø­Ø¬Ø² Ø¨ÙØ°Ø§ Ø§ÙØ±ÙÙ.' : 'ØªØ¹Ø°Ø± ÙØ±Ø§Ø¡Ø© Ø­Ø§ÙØ© Ø§ÙØ­Ø¬Ø² Ø­Ø§ÙÙØ§Ù. Ø­Ø§ÙÙ ÙØ±Ø© Ø£Ø®Ø±Ù.'
+    });
+  }
+});
 
 app.get('/api/health', (req, res) => {
   res.json({
