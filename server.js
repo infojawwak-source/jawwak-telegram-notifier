@@ -77,9 +77,21 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_M
   }
 }
 
+function repairMojibake(value) {
+  if (value === null || value === undefined) return value;
+  const text = String(value);
+  if (!/[ÃÃÃÃÃ¢Ã°]/.test(text)) return text;
+  try {
+    const repaired = Buffer.from(text, 'latin1').toString('utf8');
+    return repaired.includes('ï¿½') ? text : repaired;
+  } catch {
+    return text;
+  }
+}
+
 function clean(value) {
   if (value === null || value === undefined || value === '') return 'ØºÙØ± ÙØªÙÙØ±';
-  return String(value).trim();
+  return repairMojibake(String(value).trim());
 }
 
 function formatDate(value) {
@@ -231,7 +243,7 @@ app.get('/api/booking-tracking', rateLimit, async (req, res) => {
     const bookingRef = String(req.query?.bookingRef || '').trim().toUpperCase();
 
     if (!/^JWK-[0-9]{6}-[A-Z0-9]{6}$/.test(bookingRef)) {
-      return res.status(400).json({ error: '\u0631\u0642\u0645 \u0627\u0644\u062d\062c\u0632 \u063a\u064a\u0631 \u0635\u0627\u0644\u062d.' });
+      return res.status(400).json({ error: '\u0631\u0642\u0645 \u0627\u0644\u062d\u062c\u0632 \u063a\u064a\u0631 \u0635\u0627\u0644\u062d.' });
     }
 
     const booking = await getBooking(bookingRef);
