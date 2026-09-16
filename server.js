@@ -106,7 +106,7 @@ function formatPrice(value) {
   if (value === null || value === undefined || value === '') return 'ØºÙØ± ÙØªÙÙØ±';
   const number = Number(value);
   if (!Number.isFinite(number)) return clean(value);
-  return `${number.toLocaleString('en-US', { maximumFractionDigits: 2 })} Ø¬ÙÙÙ`;
+  return `${number.toLocaleString('en-US', { maximumFractionDigits: 2 })} EGP`;
 }
 
 function extractNotePreference(notes, label) {
